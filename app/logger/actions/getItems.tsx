@@ -3,10 +3,10 @@
 import { createClient } from "@/lib/supabaseServer"
 import { Item } from "@/lib/types";
 
-const supabase = await createClient();
+
 
 // Need this to force conversion, see below when used "as"
-type DBModifier = { id: string; name: string; value_prefix: string; attributes: any };
+type DBModifier = { id: string; name: string; value_prefix: string; type: "dollar" | "ticket" };
 
 // Get all items from Supabase -- Using Server Component
 // This should only get the users
@@ -14,21 +14,25 @@ type DBModifier = { id: string; name: string; value_prefix: string; attributes: 
 // booth:booths!inner() --> Only get where booth exists (since booths are read only by access_key)
 // modifiers:booth_items_modifiers -> search where booth_items and booth_items_modifiers have relation, name array modifiers
 // modifier:modifiers --> get where modifiers and booth_items_modifiers have a relationship, name object modifier
-export default async function getAllItems(): Promise<Item[]> {
-    let items = [];
+export default async function getAllItems(): Promise<Item[]> {  
+    const supabase = await createClient();
     
+    // console.log(`User is ${JSON.stringify(user)} and ${JSON.stringify(booths)}`)
     const { data, error } = await supabase
         .from('booth_items')
         .select(`
             id,
             item_name,
-            booth:booths!inner(),
+            booth:booths!inner(
+                id
+            ),
             modifiers:booth_items_modifiers(
+                multiply,
                 modifier:modifiers(
                     id,
                     name,
                     value_prefix,
-                    attributes
+                    type
                 )
             )
         `);
@@ -42,18 +46,21 @@ export default async function getAllItems(): Promise<Item[]> {
             return {
               id: DBItem.id,
               name: DBItem.item_name,
+              booth_id: (DBItem.booth as unknown as { id: string }).id,
               modifiers: DBItem.modifiers.map(DBModifier => {
 
                 // Not sure why DBModifier.modifier is showing as an array (from Supabase typing), when it's an object..., so forcing conversion
                 const modifier = (DBModifier.modifier as unknown) as DBModifier;
+                // As any, but can be all, double, more attributes to come. (Every 2 for $5, meaning: double = 2.5 each)
+                const multiply = DBModifier.multiply as any;
           
                 return {
                     id: modifier.id,
                     name: modifier.name,
                     value_prefix: modifier.value_prefix,
                     calculate: {
-                        type: modifier.attributes.calculate.type,
-                        multiply_by: modifier.attributes.calculate.multiply_by
+                        type: modifier.type,
+                        multiply_by: multiply
                     }
                 }
               }),

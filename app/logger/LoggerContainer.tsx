@@ -13,7 +13,6 @@ export default async function LoggerContainer() {
     const displayName = user?.user_metadata?.display_name;
     const allItems = await getAllItems();
 
-
     return (
         <div className="my-10 m-5 flex gap-y-5 flex-col font-[Inter]">
             <div key="header">
@@ -26,9 +25,10 @@ export default async function LoggerContainer() {
             </div>
             <div className="flex flex-col gap-8 my-5">
                 {allItems.map(item => (
-                    <ItemCard item={item} />
+                    <ItemCard key={item.id} item={item} />
                 ))}
             </div>
+
             <ChangeNameButtonDialog />
             <SignOutButton />
             

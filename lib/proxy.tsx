@@ -39,13 +39,15 @@ export async function updateSession(request: NextRequest) {
   url.search = '';
   let response = NextResponse.redirect(new URL('/', url));
   supabaseResponse.cookies.getAll().forEach(({ name, value }) => response.cookies.set(name, value))
+  supabaseResponse.cookies.getAll().forEach(({ name, value }) => console.log(`Cookie Print ${name} ${value}`))
 
   // IF provided KEY aka (scan QR code) AND no user logged in...
   if (key) {
-    console.log("GO HERE1")
+
+    console.error(`Response 1: ${response}`)
 
     if (!user) {
-      console.log("GO HERE2")
+      console.error(`Data Claims: ${user}`)
       // Check if the booth exists... (don't just sign in for no reason!)
       const res = await fetch("https://kdokmewkxdoqohblgqgf.supabase.co/functions/v1/clever-processor", {
         method: "POST",
@@ -53,10 +55,11 @@ export async function updateSession(request: NextRequest) {
         body: JSON.stringify({ key }),
       });
 
-      const { valid: boothExists, booth_id } = await res.json();
+      const { valid: boothExists } = await res.json();
+
+      console.error(`Cookies: ${supabaseResponse.cookies.getAll()}`)
       // Then if booth is 
       if (boothExists) {
-        console.log("GOT HERE 3")
         const { error } = await supabase.auth.signInAnonymously({
           options: {
             data: {
@@ -65,17 +68,17 @@ export async function updateSession(request: NextRequest) {
           }
         })
 
+        if (error) console.error(error)
         // Update cookies
         supabaseResponse.cookies.getAll().forEach(({ name, value }) => response.cookies.set(name, value))
-
-        console.log(error)
         
         return response;
       }
     }
 
     else {
-      // TODO: Need to make sure that key is still valid!
+      console.log(user.user_metadata)
+      // TODO: Need to make sure that access_key metadata is still valid each time! (what if access_key changes, log user out), each time! Also need to do if key is different...
       if (key === user.user_metadata?.access_key) {
         return response;
       }

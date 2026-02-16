@@ -1,6 +1,7 @@
 export type Item = {
     id: string,
     name: string;
+    booth_id: string;
     modifiers: Modifier[];
 }
 
@@ -12,6 +13,6 @@ export type Modifier = {
 }
 
 export type Calculate = {
-    type: "ticket" | "dollar"
-    calculate: (num: number) => number
+    type: "dollar" | "ticket"
+    multiply_by: any;
 }

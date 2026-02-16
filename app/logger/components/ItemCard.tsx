@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { createClient } from "@/lib/supabaseClient";
 import { Item } from "@/lib/types";
 import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
@@ -14,14 +15,79 @@ type Props = {
 export default function ItemCard( { item } : Props) {
 
     const [value, setValue] = useState(0);
-    const [currentModifier, setModifier] = useState(item.modifiers[0].name);
-    const handleLog = () => {   
-        toast.success(`Successfully logged ${value} portions`, {
-            position: "top-center",
-            theme: "light"
-        });
+    const [currentModifier, setModifier] = useState(item.modifiers[0].id);
+    const [buttonTimeout, setButtonTimeout] = useState(false);
+
+    const handleSupabaseLog = async () => {
+        const supabase = createClient();;
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error } = await supabase.from("booth_logs")
+            .insert({
+                booth_id: item.booth_id,
+                item_id: item.id,
+                modifier_id: currentModifier,
+                user_session_id: user?.id,
+                modifier_value_change: value
+            });
+
+        if (error) return error;
     }
 
+    const handleLog = async () => {
+        if (value === 0) return;
+
+        // Turn off button
+        setButtonTimeout(true);
+
+        let error = await handleSupabaseLog();
+
+        if (!error) {
+            // Successfully logged
+            toast.success(`Successfully logged ${value} portions`, {
+                position: "top-center",
+                theme: "light"
+            });
+
+            // Set value back to Zero
+            setValue(0);
+            // Set back to initial modifier
+            setModifier(item.modifiers[0].id)
+
+            // Unlock button after 1000 more milliseconds, just to have some type of extra cooldown
+            setTimeout(() => setButtonTimeout(false), 1000);
+        } else {
+            toast.error(`Error, could not log ${error}`, {
+                position: "top-center",
+                theme: "light"
+            });
+
+            // No button untimeout -- button remains locked
+        }
+        
+    }
+
+    function getEquivalency(): string {
+        const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifier);
+        const multiply = currentModifierObject?.calculate.multiply_by;
+        let calculation = 0;
+        // Always do double first, takes priority
+        if (multiply["double"] !== undefined) {
+            
+        } else if (multiply["all"]) {
+            calculation = multiply["all"] * value
+        }
+
+        if (currentModifierObject?.calculate.type === "dollar") {
+            return `$${calculation}`
+        }
+
+        if (currentModifierObject?.calculate.type === "ticket") {
+            return `${calculation} ${currentModifier} tickets`
+        }
+
+        return "Error calcuating equivalency";
+    } 
+      
     return (
         <Card className="border-1 p-5 gap-3 border-gray-300 shadow-xs">
             <CardHeader className="px-0 pt-2">
@@ -31,7 +97,7 @@ export default function ItemCard( { item } : Props) {
                 <Tabs onValueChange={v => setModifier(v)} value={currentModifier}>
                     <TabsList className="w-full">
                         {item.modifiers.map(modifier => (
-                            <TabsTrigger value={modifier.id}>{modifier.name}</TabsTrigger>
+                            <TabsTrigger key={`${modifier.id}-${item.id}`} value={modifier.id}>{modifier.name}</TabsTrigger>
                         ))}
                     </TabsList>
                 </Tabs>
@@ -41,17 +107,17 @@ export default function ItemCard( { item } : Props) {
                     </Button>
                     <div className="flex w-40 flex-col items-center">
                         <h1 className="text-8xl font-bold">{value}</h1>
-                        <p>{item.modifiers.find(mod => mod.name == currentModifier)?.value_prefix}</p>
+                        <p>{item.modifiers.find(mod => mod.id == currentModifier)?.value_prefix}</p>
                     </div>
                     <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="secondary" className="mx-4 w-20 justify-center">
                         -
                     </Button>
                 </div>
-                <p className="w-full font-mono text-center text-sm pb-3">Eqivulency: ${value * (item.modifiers.find(mod => mod.name == currentModifier)?.calculate.multiply_by || 0)}</p>
+                <p className="w-full font-mono text-center text-sm pb-3">Equivalency: {getEquivalency()}</p>
 
             </CardContent>
             <CardFooter className="px-0">
-                <Button onClick={handleLog} className="w-full min-h-15" variant="success">
+                <Button disabled={buttonTimeout} onClick={handleLog} className="w-full min-h-15" variant="success">
                     Log
                 </Button>
                 <ToastContainer />
