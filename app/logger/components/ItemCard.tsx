@@ -21,13 +21,15 @@ export default function ItemCard( { item } : Props) {
     const handleSupabaseLog = async () => {
         const supabase = createClient();;
         const { data: { user } } = await supabase.auth.getUser();
+        const currentModifierObject = item.modifiers.find(modifier => modifier.id == currentModifier);
         const { error } = await supabase.from("booth_logs")
             .insert({
                 booth_id: item.booth_id,
                 item_id: item.id,
-                modifier_id: currentModifier,
+                modifier_item_id: currentModifierObject?.item_modifier_id,
                 user_session_id: user?.id,
-                modifier_value_change: value
+                modifier_value_change: value,
+                total_price: getEquivalency(true)
             });
 
         if (error) return error;
@@ -61,12 +63,14 @@ export default function ItemCard( { item } : Props) {
                 theme: "light"
             });
 
+            console.error(error)
+
             // No button untimeout -- button remains locked
         }
         
     }
 
-    function getEquivalency(): string {
+    function getEquivalency(num = false): string | number {
         const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifier);
         const multiply = currentModifierObject?.calculate.multiply_by;
         let calculation = 0;
@@ -77,6 +81,8 @@ export default function ItemCard( { item } : Props) {
             calculation = multiply["all"] * value
         }
 
+        if (num) return calculation;
+
         if (currentModifierObject?.calculate.type === "dollar") {
             return `$${calculation}`
         }
@@ -85,7 +91,7 @@ export default function ItemCard( { item } : Props) {
             return `${calculation} ${currentModifier} tickets`
         }
 
-        return "Error calcuating equivalency";
+        return "Error calculating equivalency";
     } 
       
     return (

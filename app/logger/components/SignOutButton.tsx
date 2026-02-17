@@ -1,4 +1,4 @@
-"use client"; // ✅ Marks this as a Client Component
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabaseClient";
@@ -10,7 +10,7 @@ export default function SignOutButton() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/not-found"); // navigate after logout
+    router.push("/"); // navigate after logout
   };
 
   return (

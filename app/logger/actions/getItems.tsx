@@ -26,6 +26,7 @@ export default async function getAllItems(): Promise<Item[]> {
                 id
             ),
             modifiers:booth_items_modifiers(
+                id,
                 multiply,
                 modifier:modifiers(
                     id,
@@ -39,6 +40,7 @@ export default async function getAllItems(): Promise<Item[]> {
     if (error) {
         console.error(`Error attempting to get all items: ${error}`)
     }
+
 
     if (data) {
         const structuredItems: Item[] = data.map(DBItem => {
@@ -54,6 +56,7 @@ export default async function getAllItems(): Promise<Item[]> {
                 const multiply = DBModifier.multiply as any;
           
                 return {
+                    item_modifier_id: DBModifier.id,
                     id: modifier.id,
                     name: modifier.name,
                     value_prefix: modifier.value_prefix,
@@ -66,6 +69,7 @@ export default async function getAllItems(): Promise<Item[]> {
             };
         });
 
+        // console.dir(structuredItems, { depth: null })
         return structuredItems;
     }
 
