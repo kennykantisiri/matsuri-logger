@@ -16,3 +16,10 @@ export type Calculate = {
     type: "dollar" | "ticket"
     multiply_by: any;
 }
+
+export type ViewableData = {
+    log_id: string;
+    item_name: string;
+    modifier_id: string;
+    change: number;
+}

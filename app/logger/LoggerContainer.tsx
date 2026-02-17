@@ -5,6 +5,7 @@ import SignOutButton from "./components/SignOutButton";
 import ChangeNameButtonDialog from "./components/ChangeNameButtonDialog";
 import ItemCard from "./components/ItemCard";
 import getAllItems from "./actions/getItems";
+import UndoDialog from "./components/UndoDialog";
 
 export default async function LoggerContainer() {
 
@@ -23,6 +24,7 @@ export default async function LoggerContainer() {
                     Good evening, <b>{displayName}</b>. Please use this tool under the descretion of the instructions provided.
                 </p>
             </div>
+            <UndoDialog />
             <div className="flex flex-col gap-8 my-5">
                 {allItems.map(item => (
                     <ItemCard key={item.id} item={item} />

@@ -1,5 +1,34 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { createClient } from './supabaseServer';
+
+async function checkBoothExists(key: string) {
+  const supabase = await createClient()
+  const res = await fetch("https://kdokmewkxdoqohblgqgf.supabase.co/functions/v1/clever-processor", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key }),
+  });
+
+  const { valid: boothExists } = await res.json();
+
+  // Then if booth is a thing
+  if (boothExists) {
+    const { error } = await supabase.auth.signInAnonymously({
+      options: {
+        data: {
+          access_key: key
+        }
+      }
+    })
+
+    if (error) console.error(error)
+
+    return true;
+  }
+
+  return false;
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -39,36 +68,14 @@ export async function updateSession(request: NextRequest) {
   url.search = '';
   let response = NextResponse.redirect(new URL('/', url));
   supabaseResponse.cookies.getAll().forEach(({ name, value }) => response.cookies.set(name, value))
-  supabaseResponse.cookies.getAll().forEach(({ name, value }) => console.log(`Cookie Print ${name} ${value}`))
 
   // IF provided KEY aka (scan QR code) AND no user logged in...
   if (key) {
 
-    console.error(`Response 1: ${response}`)
 
     if (!user) {
-      console.error(`Data Claims: ${user}`)
       // Check if the booth exists... (don't just sign in for no reason!)
-      const res = await fetch("https://kdokmewkxdoqohblgqgf.supabase.co/functions/v1/clever-processor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
-      });
-
-      const { valid: boothExists } = await res.json();
-
-      console.error(`Cookies: ${supabaseResponse.cookies.getAll()}`)
-      // Then if booth is 
-      if (boothExists) {
-        const { error } = await supabase.auth.signInAnonymously({
-          options: {
-            data: {
-              access_key: key
-            }
-          }
-        })
-
-        if (error) console.error(error)
+      if (await checkBoothExists(key)) {
         // Update cookies
         supabaseResponse.cookies.getAll().forEach(({ name, value }) => response.cookies.set(name, value))
         
@@ -77,10 +84,19 @@ export async function updateSession(request: NextRequest) {
     }
 
     else {
-      console.log(user.user_metadata)
+      console.log(key)
       // TODO: Need to make sure that access_key metadata is still valid each time! (what if access_key changes, log user out), each time! Also need to do if key is different...
       if (key === user.user_metadata?.access_key) {
         return response;
+      } else {
+        if (await checkBoothExists(key)) {
+          // Update cookies
+          
+          supabaseResponse.cookies.getAll().forEach(({ name, value }) => response.cookies.set(name, value))
+        }
+        
+        return response
+        
       }
     }
   }

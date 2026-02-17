@@ -113,6 +113,16 @@ export default function ItemCard( { item } : Props) {
                         -
                     </Button>
                 </div>
+                {item.modifiers.find(mod => mod.id == currentModifier)?.calculate?.type === "dollar" 
+                    ? 
+                    <div className="flex w-full items-center justify-center gap-3 pb-5">
+                        <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(5)}>Set 5</Button>
+                        <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(10)}>Set 10</Button>
+                        <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(15)}>Set 15</Button>
+                        <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(20)}>Set 20</Button>
+                    </div>
+                    : <></>
+                }
                 <p className="w-full font-mono text-center text-sm pb-3">Equivalency: {getEquivalency()}</p>
 
             </CardContent>

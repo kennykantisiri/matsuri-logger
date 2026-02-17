@@ -17,7 +17,6 @@ type DBModifier = { id: string; name: string; value_prefix: string; type: "dolla
 export default async function getAllItems(): Promise<Item[]> {  
     const supabase = await createClient();
     
-    // console.log(`User is ${JSON.stringify(user)} and ${JSON.stringify(booths)}`)
     const { data, error } = await supabase
         .from('booth_items')
         .select(`
