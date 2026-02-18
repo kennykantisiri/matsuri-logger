@@ -124,14 +124,14 @@ export default function ItemCard( { item } : Props) {
                     </TabsList>
                 </Tabs>
                 <div className="flex w-full pt-10 pb-5 items-center justify-center">
-                    <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="removing" className="mx-10 w-13 h-10 justify-center">
+                    <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="symbol" className="mx-10 w-13 h-10 justify-center">
                         -
                     </Button>
                     <div className="flex w-40 flex-col items-center">
                         <h1 className="text-8xl font-bold">{value}</h1>
                         <p>{item.modifiers.find(mod => mod.id == currentModifierID)?.value_prefix}</p>
                     </div>
-                    <Button onClick={() => setValue(value + 1)} disabled={value >= 30} variant="adding" className="mx-10 w-13 h-10 justify-center">
+                    <Button onClick={() => setValue(value + 1)} disabled={value >= 30} variant="symbol" className="mx-10 w-13 h-10 justify-center">
                         +
                     </Button>
                 </div>
@@ -149,7 +149,7 @@ export default function ItemCard( { item } : Props) {
 
             </CardContent>
             <CardFooter className="px-0">
-                <Button disabled={buttonTimeout} onClick={handleLog} className="bg-black w-full min-h-15">
+                <Button disabled={buttonTimeout} onClick={handleLog} className="w-full min-h-15">
                     Log
                 </Button>
                 <ToastContainer />

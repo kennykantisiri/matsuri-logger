@@ -6,6 +6,7 @@ import ChangeNameButtonDialog from "./components/ChangeNameButtonDialog";
 import ItemCard from "./components/ItemCard";
 import getAllItems from "./actions/getItems";
 import UndoDialog from "./components/UndoDialog";
+import Image from "next/image";
 
 export default async function LoggerContainer() {
 
@@ -21,7 +22,7 @@ export default async function LoggerContainer() {
                     Matsuri Logger
                 </h1>
                 <p className="pt-1 text-sm">
-                    Good evening, <b>{displayName}</b>. Please use this tool under the descretion of the instructions provided.
+                    Good evening, <b>{displayName}</b>. Please use this tool under the discretion of the instructions provided.
                 </p>
             </div>
             <UndoDialog />
