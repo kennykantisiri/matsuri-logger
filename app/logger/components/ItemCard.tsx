@@ -14,14 +14,17 @@ type Props = {
 
 export default function ItemCard( { item } : Props) {
 
+    const sortedOrderedModifiers = [...item.modifiers]
+        .sort((a, b) => a.weight - b.weight)
+
     const [value, setValue] = useState(0);
-    const [currentModifier, setModifier] = useState(item.modifiers[0].id);
+    const [currentModifierID, setModifierID] = useState(sortedOrderedModifiers[0].id);
     const [buttonTimeout, setButtonTimeout] = useState(false);
 
     const handleSupabaseLog = async () => {
         const supabase = createClient();;
         const { data: { user } } = await supabase.auth.getUser();
-        const currentModifierObject = item.modifiers.find(modifier => modifier.id == currentModifier);
+        const currentModifierObject = item.modifiers.find(modifier => modifier.id == currentModifierID);
         const { error } = await supabase.from("booth_logs")
             .insert({
                 booth_id: item.booth_id,
@@ -45,7 +48,7 @@ export default function ItemCard( { item } : Props) {
 
         if (!error) {
             // Successfully logged
-            toast.success(`Successfully logged ${value} portions`, {
+            toast.success(`Successfully logged ${value} ${item.modifiers.find(mod => mod.id == currentModifierID)?.value_prefix}`, {
                 position: "top-center",
                 theme: "light"
             });
@@ -53,7 +56,7 @@ export default function ItemCard( { item } : Props) {
             // Set value back to Zero
             setValue(0);
             // Set back to initial modifier
-            setModifier(item.modifiers[0].id)
+            setModifierID(item.modifiers[0].id)
 
             // Unlock button after 1000 more milliseconds, just to have some type of extra cooldown
             setTimeout(() => setButtonTimeout(false), 1000);
@@ -70,25 +73,37 @@ export default function ItemCard( { item } : Props) {
         
     }
 
-    function getEquivalency(num = false): string | number {
-        const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifier);
+    function getEquivalency(pureNumberOnly = false): string | number {
+        const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifierID);
         const multiply = currentModifierObject?.calculate.multiply_by;
+
+        // Calculation Code
         let calculation = 0;
-        // Always do double first, takes priority
-        if (multiply["double"] !== undefined) {
-            
-        } else if (multiply["all"]) {
-            calculation = multiply["all"] * value
+        let remaining = value;
+
+        if (multiply["deals"]) {
+            const deals = [...(multiply["deals"]|| [])]
+            .sort((a, b) => b.qty - a.qty); // biggest first
+
+
+            for (const deal of deals) {
+                const count = Math.floor(remaining / deal.qty);
+                calculation += count * deal.price;
+                remaining -= count * deal.qty;
+            }
         }
 
-        if (num) return calculation;
+        calculation += remaining * multiply["unit_price"]
 
+        if (pureNumberOnly) return calculation;
+
+        // Text Modifiers
         if (currentModifierObject?.calculate.type === "dollar") {
             return `$${calculation}`
         }
 
         if (currentModifierObject?.calculate.type === "ticket") {
-            return `${calculation} ${currentModifier} tickets`
+            return `${calculation} ${currentModifierID} tickets`
         }
 
         return "Error calculating equivalency";
@@ -100,9 +115,10 @@ export default function ItemCard( { item } : Props) {
                 <CardTitle>{item.name}</CardTitle>
             </CardHeader>
             <CardContent className="px-0 py-0 ">
-                <Tabs onValueChange={v => setModifier(v)} value={currentModifier}>
+                <Tabs onValueChange={v => setModifierID(v)} value={currentModifierID}>
                     <TabsList className="w-full">
-                        {item.modifiers.map(modifier => (
+                        {/*Use ordered to ensure that the order is matching the database weights*/}
+                        {sortedOrderedModifiers.map(modifier => (
                             <TabsTrigger key={`${modifier.id}-${item.id}`} value={modifier.id}>{modifier.name}</TabsTrigger>
                         ))}
                     </TabsList>
@@ -113,13 +129,13 @@ export default function ItemCard( { item } : Props) {
                     </Button>
                     <div className="flex w-40 flex-col items-center">
                         <h1 className="text-8xl font-bold">{value}</h1>
-                        <p>{item.modifiers.find(mod => mod.id == currentModifier)?.value_prefix}</p>
+                        <p>{item.modifiers.find(mod => mod.id == currentModifierID)?.value_prefix}</p>
                     </div>
                     <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="secondary" className="mx-4 w-20 justify-center">
                         -
                     </Button>
                 </div>
-                {item.modifiers.find(mod => mod.id == currentModifier)?.calculate?.type === "dollar" 
+                {item.modifiers.find(mod => mod.id == currentModifierID)?.calculate?.type === "dollar" 
                     ? 
                     <div className="flex w-full items-center justify-center gap-3 pb-5">
                         <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(5)}>Set 5</Button>

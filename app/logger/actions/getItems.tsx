@@ -6,7 +6,7 @@ import { Item } from "@/lib/types";
 
 
 // Need this to force conversion, see below when used "as"
-type DBModifier = { id: string; name: string; value_prefix: string; type: "dollar" | "ticket" };
+type DBModifier = { id: string; name: string; value_prefix: string; weight: number; type: "dollar" | "ticket" };
 
 // Get all items from Supabase -- Using Server Component
 // This should only get the users
@@ -31,6 +31,7 @@ export default async function getAllItems(): Promise<Item[]> {
                 modifier:modifiers(
                     id,
                     name,
+                    weight,
                     value_prefix,
                     type
                 )
@@ -60,6 +61,7 @@ export default async function getAllItems(): Promise<Item[]> {
                     id: modifier.id,
                     name: modifier.name,
                     value_prefix: modifier.value_prefix,
+                    weight: modifier.weight,
                     calculate: {
                         type: modifier.type,
                         multiply_by: multiply

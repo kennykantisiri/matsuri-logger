@@ -9,6 +9,7 @@ export type Modifier = {
     item_modifier_id: string;
     id: string;
     name: string;
+    weight: number;
     value_prefix: string;
     calculate: Calculate;
 }

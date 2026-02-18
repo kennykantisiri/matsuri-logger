@@ -45,7 +45,7 @@ export default function UndoDialog() {
             // No need to check for user, since RLS blocks from seeing other people's day
             const { data, error } = await supabase
                 .from("booth_logs")
-                .select("id, item:booth_items(item_name), modifier_id, modifier_value_change")
+                .select("id, item:booth_items(item_name), modifier_item_id:booth_items_modifiers(modifier_id), modifier_value_change")
                 .order("timestamp", { ascending: false }) // newest first
                 .limit(10)
 
@@ -56,10 +56,12 @@ export default function UndoDialog() {
                     return {
                         log_id: data.id,
                         item_name: (data.item as any).item_name,
-                        modifier_id: data.modifier_id,
+                        modifier_id: (data.modifier_item_id as any).modifier_id,
                         change: data.modifier_value_change
                     }
                 })
+
+                console.log(structuredViewableData)
 
                 setData(structuredViewableData)
             }
