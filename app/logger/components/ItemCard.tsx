@@ -17,7 +17,7 @@ export default function ItemCard( { item } : Props) {
     const sortedOrderedModifiers = [...item.modifiers]
         .sort((a, b) => a.weight - b.weight)
 
-    const [value, setValue] = useState(0);
+    const [value, setValue] = useState(1);
     const [currentModifierID, setModifierID] = useState(sortedOrderedModifiers[0].id);
     const [buttonTimeout, setButtonTimeout] = useState(false);
 
@@ -53,8 +53,8 @@ export default function ItemCard( { item } : Props) {
                 theme: "light"
             });
 
-            // Set value back to Zero
-            setValue(0);
+            // Set value back to One
+            setValue(1);
             // Set back to initial modifier
             setModifierID(item.modifiers[0].id)
 
@@ -124,15 +124,15 @@ export default function ItemCard( { item } : Props) {
                     </TabsList>
                 </Tabs>
                 <div className="flex w-full pt-10 pb-5 items-center justify-center">
-                    <Button onClick={() => setValue(value + 1)} disabled={value >= 30} variant="secondary" className="mx-4 w-20 justify-center">
-                        +
+                    <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="removing" className="mx-10 w-13 h-10 justify-center">
+                        -
                     </Button>
                     <div className="flex w-40 flex-col items-center">
                         <h1 className="text-8xl font-bold">{value}</h1>
                         <p>{item.modifiers.find(mod => mod.id == currentModifierID)?.value_prefix}</p>
                     </div>
-                    <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="secondary" className="mx-4 w-20 justify-center">
-                        -
+                    <Button onClick={() => setValue(value + 1)} disabled={value >= 30} variant="adding" className="mx-10 w-13 h-10 justify-center">
+                        +
                     </Button>
                 </div>
                 {item.modifiers.find(mod => mod.id == currentModifierID)?.calculate?.type === "dollar" 
@@ -149,7 +149,7 @@ export default function ItemCard( { item } : Props) {
 
             </CardContent>
             <CardFooter className="px-0">
-                <Button disabled={buttonTimeout} onClick={handleLog} className="w-full min-h-15" variant="success">
+                <Button disabled={buttonTimeout} onClick={handleLog} className="bg-black w-full min-h-15">
                     Log
                 </Button>
                 <ToastContainer />

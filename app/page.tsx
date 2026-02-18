@@ -20,13 +20,16 @@ export default async function Home() {
       {/* Check if display name exists */}
       {displayName 
         ? 
-          <>
-            <LoggerContainer />
-          </>
+          <div className="flex justify-center min-h-dvh">
+            <div className="w-full lg:w-1/3">
+              <LoggerContainer />
+            </div>
+          </div>
+      
         :
           user 
           ? (<div className="flex w-screen min-h-screen items-center justify-center font-[Inter]">
-              <div id="name-container" className="w-100">
+              <div id="name-container" className="w-xs sm:w-md">
                 <NameForm action={setInitialName}/>
               </div>
             </div>)

@@ -78,7 +78,7 @@ export default function UndoDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>Past Actions</Button>
+                <Button variant="secondary">Past Actions</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-sm">
                 <DialogHeader>
