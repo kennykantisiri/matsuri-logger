@@ -16,25 +16,30 @@ export default function UndoDialog() {
     const [data, setData] = useState<ViewableData[]>([]);
     const supabase = createClient();
 
-    const handleDelete = async (log_id: string) => {
+    const handleDelete = async (deletable: any) => {
         const confirmed = confirm("Undo this action?")
         if (!confirmed) return
 
-        setDeletingId(log_id)
+        setDeletingId(deletable.log_id)
 
-        const { error } = await supabase
+        const inverse = { modifier_value_change: deletable.change * -1, total_price: deletable.total_price * -1}
+
+        const { error: deleteError } = await supabase
             .from("booth_logs")
-            .delete()
-            .eq("id", log_id)
+            .update({
+                modifier_value_change: inverse.modifier_value_change,
+                total_price: inverse.total_price
+            })
+            .eq('id', deletable.log_id);
 
-        if (error) {
-            console.error(error)
+        if (deleteError) {
+            console.error(deleteError)
             return
         }
 
         setDeletingId(null)
 
-        setData(prev => prev.filter(row => row.log_id !== log_id))
+        setData(prev => prev.filter(row => row.log_id !== deletable.log_id))
     }
 
     useEffect(() => {
@@ -45,21 +50,25 @@ export default function UndoDialog() {
             // No need to check for user, since RLS blocks from seeing other people's day
             const { data, error } = await supabase
                 .from("booth_logs")
-                .select("id, item:booth_items(item_name), modifier_item_id:booth_items_modifiers(modifier_id), modifier_value_change")
+                .select("id, item:booth_items(item_name), modifier_item_id:booth_items_modifiers(modifier_id), modifier_value_change, total_price")
                 .order("timestamp", { ascending: false }) // newest first
-                .limit(10)
+                .limit(10);
 
-            console.log(data)
 
             if (data) {
-                const structuredViewableData: ViewableData[] = data.map(data => {
-                    return {
-                        log_id: data.id,
-                        item_name: (data.item as any).item_name,
-                        modifier_id: (data.modifier_item_id as any).modifier_id,
-                        change: data.modifier_value_change
-                    }
-                })
+
+                const structuredViewableData: ViewableData[] = data
+                    .filter(data => data.modifier_value_change > 0)
+                    .map(data => {
+                        return {
+                            log_id: data.id,
+                            item_name: (data.item as any).item_name,
+                            modifier_id: (data.modifier_item_id as any).modifier_id,
+                            change: data.modifier_value_change,
+                            total_price: data.total_price
+                        }
+                    })
+            
 
                 console.log(structuredViewableData)
 
@@ -105,7 +114,7 @@ export default function UndoDialog() {
                                         <TableCell>{data.change}</TableCell>
                                         <TableCell className="text-right">
                                             <Button 
-                                                onClick={() => handleDelete(data.log_id)}
+                                                onClick={() => handleDelete( { log_id: data.log_id, change: data.change, total_price: data.total_price } )}
                                                 size="xs" 
                                                 disabled={deletingId === data.log_id}
                                                 variant="destructive"

@@ -10,7 +10,7 @@ import NotFound from "./not-found";
 export default async function Home() {
 
   const supabase = await createClient();
-  let displayName = "";
+  let displayName = null;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) displayName = user?.user_metadata?.display_name;

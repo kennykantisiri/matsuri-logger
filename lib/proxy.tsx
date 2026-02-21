@@ -60,9 +60,7 @@ export async function updateSession(request: NextRequest) {
   // issues with users being randomly logged out.
   // IMPORTANT: If you remove getClaims() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
-
+  const { data: { user } } = await supabase.auth.getUser();
   // New Redirect following Supabase instructions to set Cookies when doing new responses. And also remove the search param from the response!!
   const url = request.nextUrl.clone()
   url.search = '';
@@ -72,6 +70,7 @@ export async function updateSession(request: NextRequest) {
   // IF provided KEY aka (scan QR code) AND no user logged in...
   if (key) {
 
+    
 
     if (!user) {
       // Check if the booth exists... (don't just sign in for no reason!)
@@ -84,7 +83,6 @@ export async function updateSession(request: NextRequest) {
     }
 
     else {
-      console.log(key)
       // TODO: Need to make sure that access_key metadata is still valid each time! (what if access_key changes, log user out), each time! Also need to do if key is different...
       if (key === user.user_metadata?.access_key) {
         return response;

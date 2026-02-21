@@ -24,4 +24,5 @@ export type ViewableData = {
     item_name: string;
     modifier_id: string;
     change: number;
+    total_price: number;
 }
