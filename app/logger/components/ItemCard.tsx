@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabaseClient";
 import { Item } from "@/lib/types";
 import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
+import { boolean } from "zod";
 
 type Props = {
     item: Item;
@@ -73,6 +74,25 @@ export default function ItemCard( { item } : Props) {
         
     }
 
+    const addMinusIsDisabled = (type: "minus" | "add"): boolean => {
+        const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifierID);
+
+        if (type === "minus") {
+            return value == 0;
+        }
+
+        else if (type === "add") {
+            if (currentModifierObject?.calculate.type === "dollar") {
+                return value >= 200;
+            } else {
+                return value >= 30;
+            }
+        }
+
+        return true;
+
+    }
+
     function getEquivalency(pureNumberOnly = false): string | number {
         const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifierID);
         const multiply = currentModifierObject?.calculate.multiply_by;
@@ -124,20 +144,24 @@ export default function ItemCard( { item } : Props) {
                     </TabsList>
                 </Tabs>
                 <div className="flex w-full pt-10 pb-5 items-center justify-center">
-                    <Button onClick={() => setValue(value - 1)} disabled={value == 0} variant="symbol" className="mx-10 w-13 h-10 justify-center">
+                    <Button onClick={() => setValue(value - 1)} disabled={addMinusIsDisabled("minus")} variant="symbol" className="mx-10 w-13 h-10 justify-center">
                         -
                     </Button>
                     <div className="flex w-40 flex-col items-center">
                         <h1 className="text-8xl font-bold">{value}</h1>
                         <p>{item.modifiers.find(mod => mod.id == currentModifierID)?.value_prefix}</p>
                     </div>
-                    <Button onClick={() => setValue(value + 1)} disabled={value >= 30} variant="symbol" className="mx-10 w-13 h-10 justify-center">
+                    <Button onClick={() => setValue(value + 1)} disabled={addMinusIsDisabled("add")} variant="symbol" className="mx-10 w-13 h-10 justify-center">
                         +
                     </Button>
                 </div>
                 {item.modifiers.find(mod => mod.id == currentModifierID)?.calculate?.type === "dollar" 
                     ? 
-                    <div className="flex w-full items-center justify-center gap-3 pb-5">
+                    <div className="grid grid-cols-4  w-full items-center justify-center gap-3 pb-5">
+                        <Button className="flex-1 min-w-0" disabled={value + 5 >= 200} variant="outline" onClick={() => setValue(value + 5)}>Add 5</Button>
+                        <Button className="flex-1 min-w-0" disabled={value + 10 >= 200} variant="outline" onClick={() => setValue(value + 10)}>Add 10</Button>
+                        <Button className="flex-1 min-w-0" disabled={value + 15 >= 200} variant="outline" onClick={() => setValue(value + 15)}>Add 15</Button>
+                        <Button className="flex-1 min-w-0" disabled={value + 20 >= 200} variant="outline" onClick={() => setValue(value + 20)}>Add 20</Button>
                         <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(5)}>Set 5</Button>
                         <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(10)}>Set 10</Button>
                         <Button className="flex-1 min-w-0" variant="outline" onClick={() => setValue(15)}>Set 15</Button>
