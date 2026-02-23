@@ -93,6 +93,7 @@ export default function ItemCard( { item } : Props) {
 
     }
 
+    // Goal of this to show the equivalency 
     function getEquivalency(pureNumberOnly = false): string | number {
         const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifierID);
         const multiply = currentModifierObject?.calculate.multiply_by;

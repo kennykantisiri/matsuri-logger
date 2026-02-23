@@ -11,7 +11,7 @@ export default function NameForm({ action }: { action: (formData: FormData) => v
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Please enter your name...</CardTitle>
-                    <CardDescription>If you were not given explict access to this system, please exist. Welcome to the Matsuri Logger. Please enter your <b>full identifiable name</b> for record keeping.</CardDescription>
+                    <CardDescription>If you were not given explicit access to this system, please exit. Welcome to the Matsuri Logger. Please enter your <b>full identifiable name</b> for record keeping.</CardDescription>
                 </CardHeader>
                 <CardContent>
                         <Field>
