@@ -70,8 +70,6 @@ export async function updateSession(request: NextRequest) {
   // IF provided KEY aka (scan QR code) AND no user logged in...
   if (key) {
 
-    
-
     if (!user) {
       // Check if the booth exists... (don't just sign in for no reason!)
       if (await checkBoothExists(key)) {
@@ -95,6 +93,13 @@ export async function updateSession(request: NextRequest) {
         
         return response
         
+      }
+    }
+
+  } else {
+    if (user) {
+      if (!await checkBoothExists(user.user_metadata?.access_key)) {
+        supabase.auth.signOut()
       }
     }
   }

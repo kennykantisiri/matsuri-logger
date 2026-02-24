@@ -93,10 +93,13 @@ export default function ItemCard( { item } : Props) {
 
     }
 
-    // Goal of this to show the equivalency 
+    // Goal of this to show the equivalency of the current modifier value in terms of what it is calculating (ex: dollars or tickets)
+    // This is also used to calculate the total price when logging, so it needs to be accurate
+    // However, I haven't been able to make it so updates when the database updates, so everyone will need to manually refresh
     function getEquivalency(pureNumberOnly = false): string | number {
         const currentModifierObject = item.modifiers.find(mod => mod.id == currentModifierID);
         const multiply = currentModifierObject?.calculate.multiply_by;
+        const type_prefix = currentModifierObject?.type_prefix;
 
         // Calculation Code
         let calculation = 0;
@@ -124,7 +127,12 @@ export default function ItemCard( { item } : Props) {
         }
 
         if (currentModifierObject?.calculate.type === "ticket") {
-            return `${calculation} ${currentModifierID} tickets`
+            if (type_prefix === null) {
+                return `${calculation} ${currentModifierID} tickets`
+            } else {
+                return `${calculation} ${type_prefix} tickets`
+            }
+            
         }
 
         return "Error calculating equivalency";
