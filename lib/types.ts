@@ -11,6 +11,7 @@ export type Modifier = {
     name: string;
     weight: number;
     value_prefix: string;
+    type_prefix: string;
     calculate: Calculate;
 }
 
