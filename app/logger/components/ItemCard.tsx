@@ -104,6 +104,29 @@ export default function ItemCard( { item } : Props) {
         // Calculation Code
         let calculation = 0;
         let remaining = value;
+        
+        /*
+
+        Multiply:
+
+        {
+            "unit_price": 3,
+            "deals": [
+                {
+                    "qty": 2,
+                    "price": 5
+                }
+            ]
+        }
+
+        */
+
+        if (multiply["first_price"]) {
+            if (value === 1) {
+                calculation += multiply["first_price"]
+                remaining -= 1
+            }
+        }
 
         if (multiply["deals"]) {
             const deals = [...(multiply["deals"]|| [])]
