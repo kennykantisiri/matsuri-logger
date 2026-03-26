@@ -57,7 +57,7 @@ export default function ItemCard( { item } : Props) {
             // Set value back to One
             setValue(1);
             // Set back to initial modifier
-            setModifierID(item.modifiers[0].id)
+            setModifierID(sortedOrderedModifiers[0].id)
 
             // Unlock button after 1000 more milliseconds, just to have some type of extra cooldown
             setTimeout(() => setButtonTimeout(false), 1000);
@@ -122,10 +122,8 @@ export default function ItemCard( { item } : Props) {
         */
 
         if (multiply["first_price"]) {
-            if (value === 1) {
-                calculation += multiply["first_price"]
-                remaining -= 1
-            }
+            calculation += multiply["first_price"]
+            remaining -= 1
         }
 
         if (multiply["deals"]) {
