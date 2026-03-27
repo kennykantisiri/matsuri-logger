@@ -32,7 +32,7 @@ export default function NameForm({ action }: { action: (formData: FormData) => v
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Loading..." : "Submit"}
+                        {loading ? "Loading..." : "Submit"} 
                     </Button>
                 </CardFooter>
             </Card>
