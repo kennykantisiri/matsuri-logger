@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from './supabaseServer';
+import { sign } from 'crypto';
 
-async function checkBoothExists(key: string) {
+async function checkBoothExists(key: string, signedIn?: boolean) {
   const supabase = await createClient()
   const res = await fetch("https://kdokmewkxdoqohblgqgf.supabase.co/functions/v1/clever-processor", {
     method: "POST",
@@ -14,15 +15,19 @@ async function checkBoothExists(key: string) {
 
   // Then if booth is a thing
   if (boothExists) {
-    const { error } = await supabase.auth.signInAnonymously({
-      options: {
-        data: {
-          access_key: key
+    if (!signedIn) {
+      const { error } = await supabase.auth.signInAnonymously({
+        options: {
+          data: {
+            access_key: key
+          }
         }
-      }
-    })
+      })
 
-    if (error) console.error(error)
+      if (error) console.error(error)
+    }
+
+    
 
     return true;
   }
@@ -69,7 +74,6 @@ export async function updateSession(request: NextRequest) {
 
   // IF provided KEY aka (scan QR code) AND no user logged in...
   if (key) {
-
     if (!user) {
       // Check if the booth exists... (don't just sign in for no reason!)
       if (await checkBoothExists(key)) {
@@ -98,12 +102,13 @@ export async function updateSession(request: NextRequest) {
 
   } else {
     if (user) {
-      if (!await checkBoothExists(user.user_metadata?.access_key)) {
+      if (!await checkBoothExists(user.user_metadata?.access_key, true)) {
         supabase.auth.signOut()
       }
     }
   }
   
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
